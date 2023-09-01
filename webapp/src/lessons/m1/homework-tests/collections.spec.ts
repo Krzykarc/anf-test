@@ -1,6 +1,6 @@
 import { employees, shoppingList, shoppingDict, ShoppingItemWithId } from './mocks';
 
-describe.skip('Collection restructuring', () => {
+describe('Collection restructuring', () => {
   // in these exercises you'll be given two data structures:
   // - shopping items list (small one)
   // - employee list (big one)
@@ -15,6 +15,10 @@ describe.skip('Collection restructuring', () => {
 
     // define `array2dict` here
 
+    const array2dict = <T extends {id: number}>(array: T[]): {[key: string]: T} => {
+      return array.reduce<{[key: string]: T}>((acc, curr) => ({...acc, [curr.id]: curr}), {})
+    }
+
     let employeeDictionary = array2dict(employees);
 
     expect(employees.length).toEqual(1311);
@@ -27,12 +31,19 @@ describe.skip('Collection restructuring', () => {
     expect(Object.keys(shoppingDictionary).length).toEqual(10);
     expect(shoppingDictionary[611830716982].name).toEqual('Beer');
   })
+  type  ObjectWithId<T> = {
+    id: number
+  } & T;
 
   it('dict2array can turn a dictionary (with `id` key) into an array', () => {
     // write the `dict2array` function that turns a dictionary into a list
     // all elements within the dictionary are available under `id` keys
 
     // define `dict2array` here
+
+    const dict2array = <T extends {[key: number]: object}>(dict: {[key: string]: T}) => {
+      return Object.keys(dict).reduce<ObjectWithId<T>[]>((acc, curr) => [...acc, {id: Number(curr), ...dict[curr]}], [])
+    }
 
     let shoppingData = dict2array(shoppingDict);
 
