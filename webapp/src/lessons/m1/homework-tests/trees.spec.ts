@@ -1,9 +1,8 @@
-describe.skip('Tree Iterators', () => {
-
-  // For this task, we need a datatype that will define a tree
-  // Tree<T> should be a recursive and generic datatype, use sample data below
-
-  // define Tree<T> datatype here
+describe('Tree Iterators', () => {
+  type Tree<T> = {
+    value: T,
+    children?: Tree<T>[]
+  }
 
   const tree: Tree<string> = {
     value: 'A',
@@ -46,11 +45,13 @@ describe.skip('Tree Iterators', () => {
   })
 
   describe('with functions', () => {
-
-    // implement a function that will do a depth-first traversal on a given tree (1st param)
-    // and execute the callback (2nd param) on each node, in appropriate order
-
-    // define traverseDepth function here
+    const traverseDepth = (tree: Tree<string>, operation: (item: string) => void) => {
+      operation(tree.value);
+      const currentChildren = tree.children ?? [];
+      for(const treeNode of currentChildren) {
+        traverseDepth(treeNode, operation)
+      }
+    }
 
     it('performs depth-first traversal (concat)', () => {
       const { concat, getResult } = getConcat()
@@ -64,10 +65,20 @@ describe.skip('Tree Iterators', () => {
       expect(getResult()).toEqual(['A', 'B', 'E', 'F', 'G', 'C', 'M', 'R', 'N', 'S', 'D']);
     })
 
-    // implement a function that will do a breadth-first traversal on a given tree (1st param)
-    // and execute the callback (2nd param) on each node, in appropriate order
+    const traverseBreadthChildren = (tree: Tree<string>, operation: (item: string) => void) => {
+      const currentChildren = tree.children ?? [];
+      for(const treeNode of currentChildren) {
+        operation(treeNode.value)
+      }
+      for(const treeNode of currentChildren) {
+        traverseBreadthChildren(treeNode, operation)
+      }
+    }
 
-    // define traverseBreadth function here
+    const traverseBreadth = (tree: Tree<string>, operation: (item: string) => void) => {
+      operation(tree.value);
+      traverseBreadthChildren(tree, operation)
+    }
 
     it('performs breadth-first traversal (concat)', () => {
       const { concat, getResult } = getConcat()
@@ -84,14 +95,16 @@ describe.skip('Tree Iterators', () => {
   })
 
   describe('with generators', () => {
-
-    // define StringTreeIterator datatype
+    type StringTreeIterator = Generator<string>;
 
     it('performs depth-first traversal', () => {
-      // now, instead of a function, implement a generator that will iterate over
-      // the tree structure, in depth-first order
-
-      // implement iterateDepthFirst generator here
+      function* iterateDepthFirst(tree: Tree<string>): Generator<string> {
+        yield tree.value;
+        const currentChildren = tree.children ?? [];
+        for(const treeNode of currentChildren) {
+          yield *iterateDepthFirst(treeNode)
+        }
+      }
 
       let iterator: StringTreeIterator;
       iterator = iterateDepthFirst(tree);
@@ -105,9 +118,22 @@ describe.skip('Tree Iterators', () => {
     })
 
     it('performs breadth-first traversal', () => {
-      // same as above, instead of a function, implement a generator for a breadth-first order
+      type StringTreeIterator = Generator<string>;
 
-      // implement iterateBreadthFirst generator here
+      function* iterateBreadthFirstChildren(tree: Tree<string>): Generator<string> {
+        const currentChildren = tree.children ?? [];
+        for(const treeNode of currentChildren) {
+          yield treeNode.value;
+        }
+        for(const treeNode of currentChildren) {
+          yield *iterateBreadthFirstChildren(treeNode)
+        }
+      }
+
+      function* iterateBreadthFirst(tree: Tree<string>) {
+        yield tree.value;
+        yield *iterateBreadthFirstChildren(tree);
+      }
 
       let iterator: StringTreeIterator;
       iterator = iterateBreadthFirst(tree);
