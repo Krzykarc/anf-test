@@ -20,9 +20,40 @@ EventEmitter constructor must be available in the global scope
 **********************************************************/
 
 // implement EventEmitter here
-export let EventEmitter = undefined; // let, var, const, function, class - your choice
+export class EventEmitter {
+  constructor() {
+    this.channels = {};
+  }
 
-describe.skip('Event Emitter', function(){
+  channels: {
+    [key: string]: (Function)[]
+  }
+
+  trigger(channel: string, data: any) {
+    if(!this.channels[channel]) {
+      return;
+    }
+    this.channels[channel].forEach((operation) => {
+      operation(data);
+    })
+  }
+
+  on(channel: string, listener: Function) {
+    if(!this.channels[channel]) {
+      this.channels[channel] = [];
+    }
+    this.channels[channel].push(listener)
+  }
+
+  off(channel: string, listener: Function) {
+    if(!this.channels[channel]) {
+      return;
+    }
+    this.channels[channel] = this.channels[channel].filter((operation) => operation !== listener)
+  }
+};
+
+describe('Event Emitter', function(){
 
   // for each test, there's a new EventEmitter instance created separately
 
