@@ -1,6 +1,6 @@
 import { shoppingList, todos } from './mocks';
 
-describe.skip('Immutable ES6 operations', () => {
+describe('Immutable ES6 operations', () => {
 
   const john = {
     firstname: "John",
@@ -20,6 +20,9 @@ describe.skip('Immutable ES6 operations', () => {
   it('merge two objects', () => {
     // define `merge2objects` function here
     // for 2 given parameters, the function returns an new merged object
+    const merge2objects = <T extends object, U extends object>(obj1: T, obj2: U): (T & U) => {
+      return {...obj1, ...obj2}
+    }
 
     expect(merge2objects(john, musician)).toEqual({
       firstname: "John", lastname: "Lennon", profession: "musician", salary: 5000
@@ -31,8 +34,11 @@ describe.skip('Immutable ES6 operations', () => {
   })
 
   it('merging multiple objects', () => {
-    // define `mergeManyObjects` function here
-    // same as above, but accepts multiple objects as input parameters
+    type UnionToInterSection<T> = (T extends any ? (k: T) => void : never) extends (k: infer I) => void ? I : never;
+
+    const mergeManyObjects = <T extends any[]>(...args: T): UnionToIntersection<T[number]> => {
+      return args.reduce((acc, curr) => ({...acc, ...curr}), {})
+    }
 
     expect(mergeManyObjects({ id: 8492745921 }, john, musician)).toEqual({
       id: 8492745921, firstname: "John", lastname: "Lennon", profession: "musician", salary: 5000
@@ -44,10 +50,11 @@ describe.skip('Immutable ES6 operations', () => {
   })
 
   it('strip static attribute from objects', () => {
-    // define `stripId` function here
-    // it will return an immutable version of input object with `id` removed
+    const stripId = <T extends {id: any}>(obj: T): Omit<T, 'id'> => {
+      const { id, ...stripped } = obj;
+      return stripped;
+    }
 
-    // all following expectations check the same - `id` attr should have been removed
     expect(stripId({
       id: 8492745921, firstname: "John", lastname: "Lennon"
     })).toEqual({
@@ -77,14 +84,10 @@ describe.skip('Immutable ES6 operations', () => {
   })
 
   it('strip dynamic attribute from objects', () => {
-    // define `stripKey` function here
-    // same as above, but accepts the key as the 1st param (it's not hardcoded)
-    // and the object itself as the 2nd param
-
-    // OPTION 1: EASY, remove the attr, as long as the original one isn't affected
-
-    // OPTION 2: use ES6 destructuring (a little tricky one)
-    // hint: replace static attribute with a computed property ( attr ---> [attrExpr])
+    const stripKey = <T extends object, U extends keyof T>(paramToStrip: U, obj: T): Omit<T, U> => {
+      const { [paramToStrip]: _, ...objWithNoParam } = obj;
+      return objWithNoParam
+    }
 
     expect(stripKey('firstname', {
       id: 8492745921, firstname: "John", lastname: "Lennon"
@@ -99,8 +102,19 @@ describe.skip('Immutable ES6 operations', () => {
   })
 
   it('default object properties', () => {
-    // define `newTodo` function here
-    // it is supposed to fill the output object with `marked: false`, if marked is not passed in input
+    type TodoItem = object & { marked?: boolean };
+
+    type GetMarkedType<T extends TodoItem> = T['marked'] extends true ? T : (
+      {[P in keyof Omit<T, 'marked'>]: T[P]}
+      & {marked: false}
+    );
+
+    const newTodo = <T extends TodoItem>(obj: T): GetMarkedType<T> => {
+      return {
+        marked: false,
+        ...obj
+      }
+    }
 
     expect(newTodo({
       "title": "Networked methodical function Shoes",
