@@ -1,0 +1,5 @@
+1. no-any
+2. strict-type-predicates
+3. cyclomatic-complexity
+4. nterface-over-type-literal
+5. ordered-imports
