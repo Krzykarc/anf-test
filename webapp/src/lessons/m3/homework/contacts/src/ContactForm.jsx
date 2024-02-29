@@ -1,72 +1,69 @@
 /* eslint-disable */
 import React from 'react';
 
-export class ContactForm extends React.Component {
-
-  static defaultProps = {
-    contact: {
-      name: '',
-      details: ''
-    }
+export const ContactForm = (props) => {
+ const defaultContact = {
+    name: '',
+    details: ''
   }
 
-  onChange = (e) => {
+  const { contact = defaultContact } = props;
+
+  const onChange = (e) => {
     let target = e.target;
     let name = target.name;
     let value = target.type === "checkbox" ? target.checked : target.value;
 
-    this.props.onChange({
-      ...this.props.contact,
+    props.onChange({
+      ...contact,
       [name]: value
     });
   }
 
-  onSubmit = (e) => {
+  const onSubmit = (e) => {
     e.preventDefault();
-    this.props.onSubmit(this.props.contact);
+    props.onSubmit(props.contact);
   }
 
-  render() {
-    return (
-      <form onSubmit={this.onSubmit}>
-        <div className="form-group">
-          <label className="d-block w-100">
-            Name:
-            <input
-              className="form-control"
-              name="name"
-              value={this.props.contact.name}
-              onChange={this.onChange}
-            />
-          </label>
-        </div>
-        <div className="form-group">
-          <label className="d-block w-100">
-            Contact details:
-            <textarea
-              className="form-control"
-              name="details"
-              value={this.props.contact.details}
-              onChange={this.onChange}
-            />
-          </label>
-        </div>
-        <div className="form-group">
+  return <>
+    <form onSubmit={onSubmit}>
+      <div className="form-group">
+        <label className="d-block w-100">
+          Name:
           <input
-            type="button"
-            id="cancel-contact"
-            className="btn btn-default"
-            value="Cancel"
-            onClick={this.props.onCancel}
+            className="form-control"
+            name="name"
+            value={props.contact.name}
+            onChange={onChange}
           />
-          <input
-            type="submit"
-            id="save-contact"
-            className="btn btn-primary ml-2"
-            value="Save"
+        </label>
+      </div>
+      <div className="form-group">
+        <label className="d-block w-100">
+          Contact details:
+          <textarea
+            className="form-control"
+            name="details"
+            value={props.contact.details}
+            onChange={onChange}
           />
-        </div>
-      </form>
-    );
-  }
+        </label>
+      </div>
+      <div className="form-group">
+        <input
+          type="button"
+          id="cancel-contact"
+          className="btn btn-default"
+          value="Cancel"
+          onClick={props.onCancel}
+        />
+        <input
+          type="submit"
+          id="save-contact"
+          className="btn btn-primary ml-2"
+          value="Save"
+        />
+      </div>
+    </form>
+  </>;
 }
