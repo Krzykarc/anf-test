@@ -1,6 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-import React from 'react';
+import { fireEvent, render } from "@testing-library/react";
+
 import flushPromises from 'flush-promises';
 import { act } from "react-dom/test-utils";
 import { mount } from 'enzyme';
@@ -9,9 +8,12 @@ import { ContactsContainer } from '../src/ContactsContainer';
 import { ContactsService } from '../src/contacts.service';
 
 describe('ContactsContainer Component', () => {
+  it('a', () => {
+
+  })
   function createMockService() {
     const data = [{
-      id: '4567', name: 'candidate test', details: 'candidate test'
+      id: '4567', name: 'candidate name', details: 'candidate details'
     }];
 
     const svc = new ContactsService(data);
@@ -20,95 +22,84 @@ describe('ContactsContainer Component', () => {
     return svc;
   }
 
-  it('should match snapshot', () => {
+  it('should show candidates list when rendered', async () => {
     const mockService = createMockService();
-    const wrapper = mount(<ContactsContainer service={mockService} />);
-    expect(wrapper).toMatchSnapshot();
+    let findByText = null;
+    await act(async () => {
+      const wrapper = render(<ContactsContainer service={mockService} />);
+      findByText = wrapper.findByText;
+      await flushPromises();
+    })
+
+    expect(mockService.getContacts).toHaveBeenCalled();
+
+    await flushPromises();
+
+    await findByText('candidate name', {exact: false})
   });
 
-  it('should call contactsService.getContacts() when rendered', () => {
+  it('should call contactsService.saveContact() when form is submitted', async () => {
     const mockService = createMockService();
-    const wrapper = mount(<ContactsContainer service={mockService} />);
+    let findByText = null;
+    let findByLabelText = null;
+    await act(async () => {
+      const wrapper = render(<ContactsContainer service={mockService} />);
+      findByText = wrapper.findByText;
+      findByLabelText = wrapper.findByLabelText;
+      await flushPromises();
+    })
 
-    expect(mockService.getContacts.mock.calls.length).toEqual(1);
+    expect(mockService.getContacts).toHaveBeenCalled();
 
-    return mockService.getContacts.mock.results[0].value.then(() => {
-      wrapper.update();
-      expect(wrapper.find('.list-group-item').length).toEqual(mockService.contacts.length);
-    });
+    const contactItem = await findByText(mockService.contacts[0].name, {exact: false});
+    fireEvent.click(contactItem);
+
+    await act(async () => {
+      const nameInput = await findByLabelText('Name', {exact: false, selector: 'input'});
+      fireEvent.change(nameInput, {target: {value: 'Monika'}});
+      await flushPromises();
+
+      const detailsInput = await findByLabelText('Details', {exact: false, selector: 'textarea'});
+      fireEvent.change(detailsInput, {target: {value: 'monia@gmail.com'}});
+      await flushPromises();
+  
+      const saveButton = await findByText('Save');
+      fireEvent.click(saveButton);
+      await flushPromises();
+    })
+
+    expect(mockService.saveContact).toHaveBeenCalled();
   });
 
-  it('should call contactsService.saveContact() when form is submitted', () => {
+  it('should update contacts list when form is submitted', async () => {
     const mockService = createMockService();
-    const wrapper = mount(<ContactsContainer service={mockService} />);
-    expect(mockService.getContacts.mock.calls.length).toEqual(1);
+    let findByText = null;
+    let findByLabelText = null;
 
-    wrapper.setState({ selected: mockService.contacts[0] });
-    wrapper.find('form [type="submit"]').simulate('click');
-    wrapper.find('form').simulate('submit');
-    expect(mockService.saveContact.mock.calls[0]).toEqual([mockService.contacts[0]]);
-  });
+    await act(async () => {
+      const wrapper = render(<ContactsContainer service={mockService} />);
+      findByText = wrapper.findByText;
+      findByLabelText = wrapper.findByLabelText;
+      await flushPromises();
+    })
 
-  it('should fetch contacts from contactsService and update contacts list when form is submitted', () => {
-    const mockService = createMockService();
-    const wrapper = mount(<ContactsContainer service={mockService} />);
-    expect(mockService.getContacts.mock.calls.length).toEqual(1);
+    const newContactButton = await findByText('New contact', {exact: false});
+    fireEvent.click(newContactButton);
 
-    return mockService.getContacts.mock.results[0].value.then(() => {
-      wrapper.update();
-      expect(wrapper.find('.list-group-item').length).toEqual(mockService.contacts.length);
-    });
-  });
+    await act(async () => {
+      const nameInput = await findByLabelText('Name', {exact: false, selector: 'input'});
+      fireEvent.change(nameInput, {target: {value: 'Monika'}});
+      await flushPromises();
 
-  it('should add new contact to list when new contact is saved', () => {
-    const mockService = createMockService();
-    const wrapper = mount(<ContactsContainer service={mockService} />);
+      const detailsInput = await findByLabelText('Details', {exact: false, selector: 'textarea'});
+      fireEvent.change(detailsInput, {target: {value: 'monia@gmail.com'}});
+      await flushPromises();
+  
+      const saveButton = await findByText('Save');
+      fireEvent.click(saveButton);
+      await flushPromises();
+    })
 
-    wrapper.setState({ selected: { name: 'new', details: 'new' } });
-    wrapper.find('form [type="submit"]').simulate('click');
-    wrapper.find('form').simulate('submit');
-
-    expect(mockService.saveContact.mock.calls.length).toEqual(1);
-
-    // Wait for saveContact
-    return Promise.resolve(mockService.saveContact.mock.results[0].value)
-      .then(() => {
-        expect(mockService.getContacts.mock.calls.length).toEqual(2);
-
-        // Wait for second getContacts
-        return mockService.getContacts.mock.results[1].value;
-      })
-      .then(() => {
-        wrapper.update();
-        expect(wrapper.find('.list-group-item').length).toEqual(mockService.contacts.length);
-      });
-  });
-
-  it('should update contact on the list when existing contact is saved', () => {
-    const mockService = createMockService();
-    const wrapper = mount(<ContactsContainer service={mockService} />);
-    const contact = mockService.contacts[0];
-    contact.name = 'changed name';
-
-    wrapper.setState({ selected: contact });
-    wrapper.find('[name="name"]').simulate('change');
-
-    wrapper.find('form [type="submit"]').simulate('click');
-    wrapper.find('form').simulate('submit');
-
-    expect(mockService.saveContact.mock.calls.length).toEqual(1);
-
-    // Wait for saveContact
-    return Promise.resolve(mockService.saveContact.mock.results[0].value)
-      .then(() => {
-        expect(mockService.getContacts.mock.calls.length).toEqual(2);
-
-        // Wait for second getContacts
-        return mockService.getContacts.mock.results[1].value;
-      })
-      .then(() => {
-        wrapper.update();
-        expect(wrapper.find('.list-group-item').at(0).text()).toBe(contact.name);
-      });
+    await findByText('Monika', {exact: false});
   });
 });

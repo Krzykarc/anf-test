@@ -1,31 +1,29 @@
 /* eslint-disable */
-import React from 'react';
+import { useEffect, useState } from 'react';
 
 import { ContactList } from './ContactList';
 import { ContactForm } from './ContactForm';
 
-export class ContactsContainer extends React.Component {
+export const ContactsContainer = (props) => {
+  const { service } = props;
 
-  constructor(props) {
-    super(props);
+  const [ state, setState ] = useState({
+    contacts: [],
+    selected: null
+  })
 
-    // ContactsService object
-    this.service = this.props.service;
-
-    this.state = {
-      contacts: [],
-      selected: null
-    };
-
-    this.service.getContacts().then((contacts) => {
-      this.setState({
-        contacts
+  useEffect(() => {
+    service.getContacts().then((contacts) => {
+      setState({
+        contacts,
+        selected: null,
       });
     });
-  }
+  }, [])
 
-  newContact = () => {
-    this.setState({
+  const newContact = () => {
+    setState({
+      contacts: [...state.contacts],
       selected: {
         name: '',
         details: ''
@@ -33,60 +31,60 @@ export class ContactsContainer extends React.Component {
     });
   }
 
-  onSelect = (contact) => {
-    this.setState({
+  const onSelect = (contact) => {
+    setState({
+      contacts: [...state.contacts],
       selected: contact
     });
   }
 
-  onSubmit = (contact) => {
-    this.service.saveContact(contact).then(()=>{
-      this.service.getContacts().then((contacts) => {
-        this.setState({
-          contacts
+  const onSubmit = (contact) => {
+    service.saveContact(contact).then(()=>{
+      service.getContacts().then((contacts) => {
+        setState({
+          contacts,
         });
       });
     });
   }
 
-  onCancel = () => {
-    this.setState({
+  const onCancel = () => {
+    setState({
+      contacts: [...state.contacts],
       selected: null
     });
   }
 
-  render() {
-    return (
-      <div className="container">
-        <div className="row">
-          <div className="col-md-12">
-            <h1>Contacts</h1>
-          </div>
-        </div>
-        <div className="row">
-          <div className="col-md-4">
-            <ContactList
-              contacts={this.state.contacts}
-              selected={this.state.selected}
-              onSelect={this.onSelect}
-            />
-          </div>
-          <div className="col-md-4">
-            {this.state.selected
-            ? (
-              <ContactForm contact={this.state.selected}
-                onChange={this.onSelect}
-                onSubmit={this.onSubmit}
-                onCancel={this.onCancel}
-              />
-            ) : (
-              <div>
-                <button id="new-contact" onClick={this.newContact} className="btn btn-primary">New contact</button>
-              </div>
-            )}
-          </div>
+  return <>
+    <div className="container">
+      <div className="row">
+        <div className="col-md-12">
+          <h1>Contacts</h1>
         </div>
       </div>
-    );
-  }
+      <div className="row">
+        <div className="col-md-4">
+          <ContactList
+            contacts={state.contacts}
+            selected={state.selected}
+            onSelect={onSelect}
+          />
+        </div>
+        <div className="col-md-4">
+          {state.selected
+          ? (
+            <ContactForm contact={state.selected}
+              onChange={onSelect}
+              onSubmit={onSubmit}
+              onCancel={onCancel}
+            />
+          ) : (
+            <div>
+              <button id="new-contact" onClick={newContact} className="btn btn-primary">New contact</button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  </>;
 }
