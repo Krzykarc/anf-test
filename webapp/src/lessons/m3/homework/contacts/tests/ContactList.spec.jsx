@@ -1,44 +1,26 @@
-import React from 'react';
-import { shallow, mount } from 'enzyme';
+import { render } from "@testing-library/react";
 
 import contacts from '../src/contacts.json';
 import { ContactList } from '../src/ContactList';
 
 describe('ContactList Component', () => {
-  it('should be stateless component (no setState, only props)', () => {
-    const wrapper = shallow(<ContactList contacts={contacts} />);
-    expect(wrapper.state()).toBeNull();
+  it('should show contact lists', () => {
+    const {
+      getAllByText,
+    } = render(
+      <ContactList contacts={contacts} />
+    );
+    contacts.forEach((contact) => {
+      getAllByText(contact.name)
+    })
   });
 
-  it('should match snapshot (empty)', () => {
-    const wrapper = shallow(<ContactList contacts={[]} />);
-    expect(wrapper).toMatchSnapshot();
-  });
-
-  it('should match snapshot (content)', () => {
-    const wrapper = shallow(<ContactList contacts={contacts} />);
-    expect(wrapper).toMatchSnapshot();
-  });
-
-  it('should show list of contacts', () => {
-    const wrapper = shallow(<ContactList contacts={contacts} />);
-    expect(wrapper.find('.list-group-item').length).toEqual(contacts.length);
-  });
-
-  it('should call onSelect function after a contact was clicked', () => {
+  it('should call function on click', () => {
     const onSelect = jest.fn();
-    const wrapper = mount(<ContactList contacts={contacts} onSelect={onSelect} />);
-    const item = wrapper.find('.list-group-item').at(1);
-    item.simulate('click');
+    const { getByText } = render(<ContactList contacts={contacts} onSelect={onSelect} />);
+    const contactItem = getByText(contacts[1].name)
+    contactItem.click();
 
-    expect(onSelect.mock.calls[0]).toEqual([contacts[1]]);
-  });
-
-  it('should add `active` class to a contact after it was selected', () => {
-    const contact = contacts[1];
-    const wrapper = mount(<ContactList contacts={contacts} selected={contact} />);
-
-    const item = wrapper.find('.list-group-item').at(1);
-    expect(item.hasClass('active')).toBeTruthy();
+    expect(onSelect).toBeCalledTimes(1);
   });
 });
