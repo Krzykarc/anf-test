@@ -116,7 +116,7 @@ interface EmployeeListProps {
   onFireClick: (e: Employee) => void
 }
 
-export const EmployeeList = ({
+export const EmployeeList = React.memo(({
   employees, onGiveRiseClick, onFireClick
 }: EmployeeListProps) => {
 
@@ -149,4 +149,4 @@ export const EmployeeList = ({
       ))}
     </EmployeeUl>
   </>;
-}
+})

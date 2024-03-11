@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 
 import { Loader, FormatMoney, Typography } from 'ui/atoms';
 import { CheckboxField } from 'ui/molecules';
@@ -55,17 +55,17 @@ export const EmployeesView = (props: EmployeesViewProps) => {
     getEmployees().then((response) => setEmployees(response));
   }, []);
 
-  const onFire = (e: Employee) => {
+  const onFire = useCallback((e: Employee) => {
     deleteEmployee(e.id)
       .then(() => getEmployees())
       .then((response) => setEmployees(response));
-  }
+  }, [])
 
-  const onGiveRise = (e: Employee) => {
+  const onGiveRise = useCallback((e: Employee) => {
     updateEmployee({ ...e, salary: e.salary + 100 })
       .then(() => getEmployees())
       .then((response) => setEmployees(response));
-  }
+  }, [])
 
   const [displaySalarySummaries, setDisplaySalarySummaries] = useState(true)
 
